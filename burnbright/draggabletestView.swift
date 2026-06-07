@@ -5,45 +5,56 @@
 //  Created by Aksharaa Ramesh on 5/6/26.
 //
 
+//Logic to implement: you can have any amt of cards in your deck, but the only cards whose numbers you can see/are allowed to use are the 4??? ask rohini how this works again
 import SwiftUI
 import CoreTransferable
 import UniformTypeIdentifiers
 
 struct TransferableInt: Transferable, Codable {
     let value: Int
-
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .plainText)
     }
 }
 
 struct draggabletestView: View {
-    @State var topDeck: [Int] = [4, 4, 5, 6]
-    @State var firstmainPile: Int = 0
-    @State var secondmainPile: Int = 0
-    @State var bottomDeck: [Int] = [1, 1, 1, 1, 2, 3, 2, 2, 2, 3, 4, 4]
-    
+    @State var topDeck: [Int] = [] //to obtain no. of cards, use topDeck.count
+    @State var firstmainPile: Int = Int.random(in: 0...9)
+    @State var secondmainPile: Int = Int.random(in: 0...9)
+    @State var cardsInPiles: [Int] = []
+    @State var bottomDeck: [Int] = (0..<4).map{ _ in
+        Int.random(in: 0...9)
+    }
     var body: some View {
         VStack{
-            KanbanView(cards: topDeck, kandim:[390.0, 150.0], carddim: [20, 40], textsize: 30)
+//            KanbanView(cards: topDeck, kandim:[390.0, 150.0], carddim: [20, 40], textsize: 30)
+            Spacer()
+            Text("Opponent has \(topDeck.count) cards left!")
+                .font(.system(size: 33))
+                .foregroundColor(.red)
+           // Text("\(cardsInPiles)")
             Spacer()
             
             HStack {
                 Spacer()
-                MainPileView(card: firstmainPile, kandim:[150.0, 200.0], carddim: [100.0, 150], textsize: 30)
+                MainPileView(card: firstmainPile, kandim:[170.0, 240.0], carddim: [130.0, 200.0], textsize: 30)
                     .contentShape(Rectangle())
                     .dropDestination(for: TransferableInt.self) { droppedCards, location in
                         let value = droppedCards.first?.value ?? 0
                         if (firstmainPile - 1) == value{
+                            cardsInPiles.append(value)
                             firstmainPile = value
                             //bottomDeck.removeAll(where: { $0 == value })
                             if let index = bottomDeck.firstIndex(of: value) {
                                 bottomDeck.remove(at: index)
+                                bottomDeck.append(Int.random(in: 0...9))
                             }
                         }else if (firstmainPile + 1) == value{
+                            cardsInPiles.append(value)
                             firstmainPile = value
                             if let index = bottomDeck.firstIndex(of: value) {
                                 bottomDeck.remove(at: index)
+                                bottomDeck.append(Int.random(in: 0...9))
                             }
                         }else{
                         }
@@ -53,20 +64,24 @@ struct draggabletestView: View {
                         return true
                     }
                 Spacer()
-                MainPileView(card: secondmainPile, kandim:[150, 200], carddim: [100.0, 150], textsize: 30)
+                MainPileView(card: secondmainPile, kandim:[170.0, 240.0], carddim: [130.0, 200.0], textsize: 30)
                     .contentShape(Rectangle())
                     .dropDestination(for: TransferableInt.self) { droppedCards, location in
                         let value = droppedCards.first?.value ?? 0
                         if (secondmainPile - 1) == value{
+                            cardsInPiles.append(value)
                             secondmainPile = value
                             //bottomDeck.removeAll(where: { $0 == value })
                             if let index = bottomDeck.firstIndex(of: value) {
                                 bottomDeck.remove(at: index)
+                                bottomDeck.append(Int.random(in: 0...9))
                             }
                         }else if (secondmainPile + 1) == value{
+                            cardsInPiles.append(value)
                             secondmainPile = value
                             if let index = bottomDeck.firstIndex(of: value) {
                                 bottomDeck.remove(at: index)
+                                bottomDeck.append(Int.random(in: 0...9))
                             }
                         }else{
                         }
@@ -76,6 +91,15 @@ struct draggabletestView: View {
                         return true
                     }
                 Spacer()
+            }
+            Spacer()
+            if firstmainPile == secondmainPile{
+                Button("Stress!"){
+                    topDeck.append(contentsOf:cardsInPiles)
+                    cardsInPiles = []
+                    firstmainPile = Int.random(in: 0...9)
+                    secondmainPile = Int.random(in: 0...9)
+                }
             }
             Spacer()
             KanbanView(cards: bottomDeck, kandim:[390.0, 150.0], carddim: [20, 40], textsize: 30)
@@ -91,7 +115,6 @@ struct KanbanView: View {
     let textsize: Double
     var body: some View {
         VStack (alignment: .leading){
-                ScrollView(.horizontal,showsIndicators: false) {
                     HStack(alignment: .center, spacing: 12) {
                         Spacer()
                         ForEach(cards, id: \.self){ card in
@@ -113,11 +136,17 @@ struct KanbanView: View {
                         Spacer()
                     }
                     .padding(.vertical)
-                }
-                .frame(width: kandim[0], height: kandim[1])
-                .background(Color(.secondarySystemFill))
-                .cornerRadius(15)
+//                .frame(width: kandim[0], height: kandim[1])
+//                .background(Color(.secondarySystemFill))
+//                .cornerRadius(15)
+            Text("\(cards.count) cards")
+                .font(.system(size: 15))
+                .offset(x: 320)
+                .foregroundColor(.black)
             }
+        .frame(width: kandim[0], height: kandim[1])
+        .background(Color(.secondarySystemFill))
+        .cornerRadius(15)
     }
 }
 struct MainPileView: View {
